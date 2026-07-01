@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Faith Tracker" />
+  <meta name="theme-color" content="#c9922a" />
+  <meta name="description" content="Daily devotion journal — walk consistently with the Holy Spirit" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Faith Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Crimson+Pro:wght@300;400&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { background: #0d0a07; font-family: 'Crimson Pro', Georgia, serif; color: #e8d5b0; -webkit-font-smoothing: antialiased; }
+    #root { height: 100%; }
+
+    .ft-root {
+      height: 100vh; display: flex; flex-direction: column;
+      background: radial-gradient(ellipse at 20% 10%, #2a1a0a 0%, #0d0a07 55%, #07080f 100%);
+      position: relative; overflow: hidden;
+    }
+    .ft-root::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(circle at 70% 80%, rgba(180,120,30,.06) 0%, transparent 50%),
+                  radial-gradient(circle at 10% 50%, rgba(120,80,20,.05) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .ft-scroll {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 0 20px 16px; position: relative; z-index: 1;
+    }
+    .ft-scroll::-webkit-scrollbar { display: none; }
+
+    .ft-header {
+      padding: 18px 20px 14px; text-align: center;
+      border-bottom: 1px solid rgba(180,130,50,.15);
+      position: relative; z-index: 1; flex-shrink: 0;
+    }
+    .ft-logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: #c9922a; letter-spacing: 2px; text-transform: uppercase; }
+    .ft-tagline { font-size: 11px; color: rgba(232,213,176,.4); letter-spacing: 3px; text-transform: uppercase; margin-top: 3px; font-weight: 300; }
+
+    .ft-nav {
+      display: flex; justify-content: space-around;
+      padding: 10px 0 max(16px, env(safe-area-inset-bottom));
+      background: rgba(13,10,7,.97); border-top: 1px solid rgba(180,130,50,.2);
+      position: relative; z-index: 10; flex-shrink: 0;
+    }
+    .ft-nav-btn {
+      background: none; border: none; color: rgba(232,213,176,.38);
+      font-family: 'Crimson Pro', serif; font-size: 10px; letter-spacing: 1.5px;
+      text-transform: uppercase; cursor: pointer; display: flex;
+      flex-direction: column; align-items: center; gap: 3px; padding: 4px 14px;
+      transition: color .2s;
+    }
+    .ft-nav-btn.active { color: #c9922a; }
+    .ft-nav-btn .ic { font-size: 18px; }
+
+    .ft-card {
+      background: rgba(255,255,255,.03); border: 1px solid rgba(180,130,50,.15);
+      border-radius: 16px; padding: 20px; margin-bottom: 14px;
+      position: relative; overflow: hidden;
+    }
+    .ft-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,146,42,.28), transparent);
+    }
+    .ft-card-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: #c9922a; margin-bottom: 12px; letter-spacing: .5px; }
+
+    .ft-verse {
+      background: linear-gradient(135deg, rgba(201,146,42,.08), rgba(180,120,30,.03));
+      border: 1px solid rgba(201,146,42,.22); border-radius: 16px;
+      padding: 22px 18px; margin-bottom: 14px; text-align: center;
+    }
+    .ft-verse-text { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-style: italic; line-height: 1.55; color: #e8d5b0; margin-bottom: 10px; }
+    .ft-verse-ref { font-size: 11px; color: #c9922a; letter-spacing: 2px; text-transform: uppercase; }
+
+    .glow-dot {
+      width: 6px; height: 6px; background: #c9922a; border-radius: 50%;
+      margin: 0 auto 14px;
+      box-shadow: 0 0 10px rgba(201,146,42,.65), 0 0 22px rgba(201,146,42,.2);
+    }
+
+    .stats-row { display: flex; gap: 10px; margin-bottom: 14px; }
+    .stat-box {
+      background: linear-gradient(135deg, rgba(201,146,42,.1), rgba(180,120,30,.05));
+      border: 1px solid rgba(201,146,42,.22); border-radius: 14px;
+      padding: 14px 8px; text-align: center; flex: 1;
+    }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; color: #c9922a; line-height: 1; }
+    .stat-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,213,176,.42); margin-top: 4px; }
+
+    .ft-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(232,213,176,.48); margin-bottom: 7px; display: block; }
+    .ft-input {
+      width: 100%; background: rgba(255,255,255,.04); border: 1px solid rgba(180,130,50,.2);
+      border-radius: 10px; padding: 12px 14px; font-family: 'Crimson Pro', serif;
+      font-size: 16px; color: #e8d5b0; outline: none; transition: border-color .2s;
+      -webkit-appearance: none;
+    }
+    .ft-input:focus { border-color: rgba(201,146,42,.5); }
+    .ft-input::placeholder { color: rgba(232,213,176,.22); }
+    textarea.ft-input { resize: vertical; min-height: 88px; line-height: 1.6; }
+    .ft-field { margin-bottom: 16px; }
+
+    .ft-btn {
+      width: 100%; background: linear-gradient(135deg, #b8821e, #c9922a);
+      border: none; border-radius: 12px; padding: 14px;
+      font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600;
+      letter-spacing: .8px; color: #0d0a07; cursor: pointer;
+      transition: opacity .2s, transform .15s; margin-top: 4px;
+    }
+    .ft-btn:active { opacity: .88; transform: scale(.99); }
+    .ft-btn.ghost { background: transparent; border: 1px solid rgba(201,146,42,.32); color: #c9922a; margin-top: 10px; }
+
+    .moods { display: flex; flex-wrap: wrap; gap: 7px; }
+    .mood-chip {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(180,130,50,.18);
+      border-radius: 20px; padding: 7px 13px; font-size: 13px;
+      color: rgba(232,213,176,.58); cursor: pointer; transition: all .2s;
+      font-family: 'Crimson Pro', serif; user-select: none;
+    }
+    .mood-chip.sel { background: rgba(201,146,42,.14); border-color: rgba(201,146,42,.48); color: #e8d5b0; }
+
+    .time-btn {
+      width: 100%; background: rgba(255,255,255,.03); border: 1px solid rgba(180,130,50,.18);
+      border-radius: 10px; padding: 12px 14px; color: rgba(232,213,176,.62);
+      font-family: 'Crimson Pro', serif; font-size: 15px; text-align: left;
+      cursor: pointer; margin-bottom: 8px; transition: all .2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .time-btn.sel { background: rgba(201,146,42,.1); border-color: rgba(201,146,42,.4); color: #e8d5b0; }
+
+    .entry { border-bottom: 1px solid rgba(180,130,50,.1); padding: 14px 0; display: flex; gap: 12px; }
+    .entry:last-child { border-bottom: none; }
+    .entry-dot { width: 9px; height: 9px; background: #c9922a; border-radius: 50%; margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 7px rgba(201,146,42,.55); }
+    .entry-date { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,213,176,.38); margin-bottom: 3px; }
+    .entry-mood { font-size: 13px; color: #c9922a; margin-bottom: 3px; }
+    .entry-note { font-size: 15px; color: rgba(232,213,176,.72); line-height: 1.5; }
+
+    .prog-wrap { background: rgba(255,255,255,.05); border-radius: 6px; height: 6px; overflow: hidden; margin-top: 8px; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg, #b8821e, #e0a830); border-radius: 6px; transition: width .6s ease; }
+    .heat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 8px; }
+    .heat-cell { aspect-ratio: 1; border-radius: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(180,130,50,.1); }
+    .heat-cell.done { background: rgba(201,146,42,.22); border-color: rgba(201,146,42,.38); }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 6px; }
+    .week-cell { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(180,130,50,.12); display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(232,213,176,.3); font-family: 'Crimson Pro', serif; }
+    .week-cell.done { background: rgba(201,146,42,.2); border-color: rgba(201,146,42,.38); color: #c9922a; }
+
+    .ft-toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #b8821e, #c9922a); color: #0d0a07;
+      padding: 11px 22px; border-radius: 24px;
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600;
+      z-index: 999; white-space: nowrap; animation: toastIn .3s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .onboard { padding: 16px 0 24px; }
+    .ob-step { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: rgba(201,146,42,.5); margin-bottom: 6px; }
+    .ob-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; line-height: 1.2; color: #e8d5b0; margin-bottom: 8px; }
+    .ob-sub { font-size: 16px; color: rgba(232,213,176,.48); line-height: 1.6; margin-bottom: 26px; }
+
+    .install-banner {
+      background: rgba(201,146,42,.1); border: 1px solid rgba(201,146,42,.25);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .install-banner p { font-size: 14px; color: rgba(232,213,176,.75); line-height: 1.4; }
+    .install-btn {
+      background: linear-gradient(135deg, #b8821e, #c9922a); border: none;
+      border-radius: 8px; padding: 8px 14px; font-family: 'Cormorant Garamond', serif;
+      font-size: 14px; font-weight: 600; color: #0d0a07; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .today-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(201,146,42,.12); border: 1px solid rgba(201,146,42,.3);
+      border-radius: 20px; padding: 5px 12px; font-size: 13px; color: #c9922a;
+      margin-bottom: 14px;
+    }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(180,130,50,.2), transparent); margin: 14px 0; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const VERSES = [
+  { text: "Draw near to God, and he will draw near to you.", ref: "James 4:8" },
+  { text: "I can do all things through Christ who strengthens me.", ref: "Philippians 4:13" },
+  { text: "Be still, and know that I am God.", ref: "Psalm 46:10" },
+  { text: "The Lord is my shepherd; I shall not want.", ref: "Psalm 23:1" },
+  { text: "Trust in the Lord with all your heart.", ref: "Proverbs 3:5" },
+  { text: "Your word is a lamp to my feet and a light to my path.", ref: "Psalm 119:105" },
+  { text: "The joy of the Lord is your strength.", ref: "Nehemiah 8:10" },
+  { text: "Call to me and I will answer you.", ref: "Jeremiah 33:3" },
+];
+
+const MOODS   = ["🙏 Grateful","✨ Inspired","😔 Struggling","🕊️ Peaceful","🔥 Zealous","😴 Tired"];
+const PRESETS = ["5:00 AM – Early Morning","6:00 AM – Dawn Watch","7:00 AM – Morning Start","9:00 PM – Night Vigil"];
+const WDAYS   = ["S","M","T","W","T","F","S"];
+
+// ── STORAGE HELPERS ───────────────────────────────────────
+const load = (k, fb) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fb; } catch { return fb; } };
+const save = (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+// ── DATE ──────────────────────────────────────────────────
+const todayStr = () => new Date().toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+const timeStr  = () => new Date().toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" });
+
+// ── APP ───────────────────────────────────────────────────
+function App() {
+  const [screen,  setScreen]  = useState(() => load("ft_screen", "onboard"));
+  const [step,    setStep]    = useState(1);
+  const [toast,   setToast]   = useState(null);
+  const [verse]               = useState(() => VERSES[Math.floor(Math.random() * VERSES.length)]);
+  const [user,    setUser]    = useState(() => load("ft_user",    { name:"", fellowship:"" }));
+  const [rTime,   setRTime]   = useState(() => load("ft_rtime",   "6:00 AM – Dawn Watch"));
+  const [rSet,    setRSet]    = useState(() => load("ft_rset",    false));
+  const [entries, setEntries] = useState(() => load("ft_entries", []));
+  const [mood,    setMood]    = useState("");
+  const [passage, setPassage] = useState("");
+  const [reflect, setReflect] = useState("");
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstall,    setShowInstall]    = useState(false);
+
+  // ── PERSIST ───────────────────────────────────────────
+  useEffect(() => save("ft_screen",  screen),  [screen]);
+  useEffect(() => save("ft_user",    user),    [user]);
+  useEffect(() => save("ft_rtime",   rTime),   [rTime]);
+  useEffect(() => save("ft_rset",    rSet),    [rSet]);
+  useEffect(() => save("ft_entries", entries), [entries]);
+
+  // ── PWA INSTALL ───────────────────────────────────────
+  useEffect(() => {
+    const h = e => { e.preventDefault(); setDeferredPrompt(e); setShowInstall(true); };
+    window.addEventListener("beforeinstallprompt", h);
+    return () => window.removeEventListener("beforeinstallprompt", h);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const r = await deferredPrompt.userChoice;
+    if (r.outcome === "accepted") { setShowInstall(false); showT("App installed ✦"); }
+    setDeferredPrompt(null);
+  };
+
+  // ── UTILS ─────────────────────────────────────────────
+  const showT = msg => { setToast(msg); setTimeout(() => setToast(null), 2600); };
+
+  // Count unique days that have entries
+  const uniqueDays = [...new Set(entries.map(e => e.date))].length;
+  // Today's entries
+  const todaysEntries = entries.filter(e => e.date === todayStr());
+  // Streak: consecutive days from today backwards
+  const calcStreak = () => {
+    const days = [...new Set(entries.map(e => e.date))].sort((a,b) => new Date(b) - new Date(a));
+    if (!days.length) return 0;
+    let streak = 0, check = new Date();
+    check.setHours(0,0,0,0);
+    for (const d of days) {
+      const dDate = new Date(d); dDate.setHours(0,0,0,0);
+      const diff  = (check - dDate) / 86400000;
+      if (diff <= 1) { streak++; check = dDate; }
+      else break;
+    }
+    return streak;
+  };
+  const streak = calcStreak();
+
+  // ── SUBMIT LOG ────────────────────────────────────────
+  const submitLog = () => {
+    if (!mood)    return showT("Please select a mood ✦");
+    if (!reflect) return showT("Please write a reflection ✦");
+    const newEntry = {
+      id:      Date.now(),
+      date:    todayStr(),
+      time:    timeStr(),
+      mood,
+      passage,
+      note:    reflect,
+    };
+    setEntries(prev => [newEntry, ...prev]);
+    setMood(""); setPassage(""); setReflect("");
+    showT("Devotion logged ✦ Well done!");
+    setScreen("home");
+  };
+
+  // ── NAV ───────────────────────────────────────────────
+  const Nav = () => (
+    <nav className="ft-nav">
+      {[["🏠","Home","home"],["✍️","Log","log"],["📖","Journal","history"],["📊","Progress","progress"]].map(([ic,lb,id]) => (
+        <button key={id} className={`ft-nav-btn${screen===id?" active":""}`} onClick={() => setScreen(id)}>
+          <span className="ic">{ic}</span>{lb}
+        </button>
+      ))}
+    </nav>
+  );
+
+  const Toast = () => toast ? <div className="ft-toast">{toast}</div> : null;
+
+  // ── ONBOARDING ────────────────────────────────────────
+  if (screen === "onboard") return (
+    <div className="ft-root">
+      <Toast />
+      <div className="ft-header"><div className="ft-logo">Faith Tracker</div></div>
+      <div className="ft-scroll">
+        <div className="onboard">
+          <div className="glow-dot" />
+          {step === 1 && <>
+            <div className="ob-step">Welcome</div>
+            <div className="ob-title">Walk daily with the Holy Spirit</div>
+            <div className="ob-sub">Log your devotions, write reflections, and build an unbreakable daily habit with God.</div>
+            <div className="ft-field">
+              <label className="ft-label">Your Name</label>
+              <input className="ft-input" placeholder="e.g. Victor" value={user.name} onChange={e => setUser(u => ({...u, name: e.target.value}))} />
+            </div>
+            <div className="ft-field">
+              <label className="ft-label">Fellowship / Church (optional)</label>
+              <input className="ft-input" placeholder="e.g. Eklesia" value={user.fellowship} onChange={e => setUser(u => ({...u, fellowship: e.target.value}))} />
+            </div>
+            <button className="ft-btn" onClick={() => { if (!user.name.trim()) return showT("Please enter your name"); setStep(2); }}>Continue →</button>
+          </>}
+
+          {step === 2 && <>
+            <div className="ob-step">Step 2 of 2</div>
+            <div className="ob-title">Set your reminder time</div>
+            <div className="ob-sub">When should we nudge you for your daily devotion?</div>
+            {PRESETS.map(t => (
+              <button key={t} className={`time-btn${rTime===t?" sel":""}`} onClick={() => setRTime(t)}>
+                {t} {rTime===t && <span>✦</span>}
+              </button>
+            ))}
+            <div className="divider" />
+            <div className="ft-field">
+              <label className="ft-label">Or set a custom time</label>
+              <input type="time" className="ft-input" onChange={e => setRTime(e.target.value)} />
+            </div>
+            <button className="ft-btn" onClick={() => { setRSet(true); setScreen("home"); showT("Welcome, " + user.name + " ✦"); }}>
+              Start My Journey ✦
+            </button>
+            <button className="ft-btn ghost" onClick={() => setStep(1)}>← Back</button>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── HOME ──────────────────────────────────────────────
+  if (screen === "home") {
+    const hour  = new Date().getHours();
+    const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    return (
+      <div className="ft-root">
+        <Toast />
+        <div className="ft-header">
+          <div className="ft-logo">Faith Tracker</div>
+          <div className="ft-tagline">Daily Devotion Journal</div>
+        </div>
+        <div className="ft-scroll">
+          {showInstall && (
+            <div className="install-banner">
+              <p>Install Faith Tracker on your home screen.</p>
+              <button className="install-btn" onClick={handleInstall}>Install</button>
+            </div>
+          )}
+
+          <div style={{marginBottom:14}}>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,color:"#e8d5b0",marginBottom:3}}>
+              {greet}, {user.name} 🕊️
+            </div>
+            <div style={{fontSize:13,color:"rgba(232,213,176,.42)"}}>
+              {todaysEntries.length > 0
+                ? `${todaysEntries.length} entr${todaysEntries.length===1?"y":"ies"} logged today ✦`
+                : "Your devotion awaits you today"}
+            </div>
+          </div>
+
+          <div className="ft-verse">
+            <div className="glow-dot" />
+            <div className="ft-verse-text">"{verse.text}"</div>
+            <div className="ft-verse-ref">— {verse.ref}</div>
+          </div>
+
+          <div className="stats-row">
+            <div className="stat-box"><div className="stat-num">{streak}</div><div className="stat-label">Day Streak</div></div>
+            <div className="stat-box"><div className="stat-num">{uniqueDays}</div><div className="stat-label">Days Logged</div></div>
+            <div className="stat-box"><div className="stat-num">{entries.length}</div><div className="stat-label">Total Entries</div></div>
+          </div>
+
+          {/* ✅ ALWAYS visible — no blocking */}
+          <button className="ft-btn" onClick={() => setScreen("log")}>✦ Log a Devotion Entry</button>
+          <button className="ft-btn ghost" onClick={() => setScreen("history")}>View Journal History</button>
+
+          <div className="ft-card" style={{marginTop:14}}>
+            <div className="ft-card-title">This Week</div>
+            <div className="week-grid">
+              {WDAYS.map((d,i) => {
+                const day = new Date(); day.setDate(day.getDate() - (new Date().getDay() - i));
+                const ds  = day.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+                const has = entries.some(e => e.date === ds);
+                return <div key={i} className={`week-cell${has?" done":""}`}>{d}</div>;
+              })}
+            </div>
+          </div>
+        </div>
+        <Nav />
+      </div>
+    );
+  }
+
+  // ── LOG ───────────────────────────────────────────────
+  if (screen === "log") return (
+    <div className="ft-root">
+      <Toast />
+      <div className="ft-header">
+        <div className="ft-logo">Log Devotion</div>
+        <div className="ft-tagline">{todayStr()} · {timeStr()}</div>
+      </div>
+      <div className="ft-scroll">
+        {todaysEntries.length > 0 && (
+          <div className="today-badge">
+            ✦ {todaysEntries.length} entr{todaysEntries.length===1?"y":"ies"} logged today — add another
+          </div>
+        )}
+
+        <div className="ft-card">
+          <div className="ft-card-title">How are you feeling?</div>
+          <div className="moods">
+            {MOODS.map(m => (
+              <div key={m} className={`mood-chip${mood===m?" sel":""}`} onClick={() => setMood(m)}>{m}</div>
+            ))}
+          </div>
+        </div>
+
+        <div className="ft-card">
+          <div className="ft-card-title">Bible Passage</div>
+          <div className="ft-field">
+            <input className="ft-input" placeholder="e.g. John 3:16, Psalms 23..." value={passage} onChange={e => setPassage(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="ft-card">
+          <div className="ft-card-title">Your Reflection</div>
+          <div className="ft-field">
+            <textarea className="ft-input" placeholder="What did the Holy Spirit speak to you today? Write freely..." value={reflect} onChange={e => setReflect(e.target.value)} rows={5} />
+          </div>
+        </div>
+
+        <button className="ft-btn" onClick={submitLog}>Save Entry ✦</button>
+        <button className="ft-btn ghost" onClick={() => setScreen("home")}>← Back Home</button>
+      </div>
+      <Nav />
+    </div>
+  );
+
+  // ── HISTORY ───────────────────────────────────────────
+  if (screen === "history") return (
+    <div className="ft-root">
+      <Toast />
+      <div className="ft-header">
+        <div className="ft-logo">Journal</div>
+        <div className="ft-tagline">{entries.length} total entr{entries.length===1?"y":"ies"}</div>
+      </div>
+      <div className="ft-scroll">
+        <div className="ft-card">
+          <div className="ft-card-title">Devotion History</div>
+          {entries.length === 0 ? (
+            <div style={{textAlign:"center",color:"rgba(232,213,176,.32)",padding:"20px 0",fontStyle:"italic"}}>
+              No entries yet. Log your first devotion today.
+            </div>
+          ) : entries.map((e) => (
+            <div key={e.id || e.date} className="entry">
+              <div className="entry-dot" />
+              <div style={{flex:1}}>
+                <div className="entry-date">
+                  {e.date}{e.time && <span style={{color:"rgba(201,146,42,.4)"}}> · {e.time}</span>}
+                  {e.passage && <span style={{color:"rgba(201,146,42,.55)"}}> · {e.passage}</span>}
+                </div>
+                <div className="entry-mood">{e.mood}</div>
+                <div className="entry-note">{e.note}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Nav />
+    </div>
+  );
+
+  // ── PROGRESS ──────────────────────────────────────────
+  if (screen === "progress") {
+    const pct = Math.min(Math.round((uniqueDays / 30) * 100), 100);
+    const moodMap = {};
+    entries.forEach(e => { moodMap[e.mood] = (moodMap[e.mood]||0)+1; });
+    const topMood = Object.entries(moodMap).sort((a,b)=>b[1]-a[1])[0];
+
+    return (
+      <div className="ft-root">
+        <Toast />
+        <div className="ft-header">
+          <div className="ft-logo">Progress</div>
+          <div className="ft-tagline">Your spiritual growth</div>
+        </div>
+        <div className="ft-scroll">
+          <div className="ft-card">
+            <div className="ft-card-title">Monthly Goal — 30 Days</div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"rgba(232,213,176,.45)"}}>
+              <span>{uniqueDays} days logged</span><span>{pct}%</span>
+            </div>
+            <div className="prog-wrap"><div className="prog-fill" style={{width:`${pct}%`}} /></div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+            {[
+              {l:"Day Streak",    v: streak},
+              {l:"Total Entries", v: entries.length},
+              {l:"Top Mood",      v: topMood ? topMood[0].split(" ")[0] : "—"},
+              {l:"Fellowship",    v: user.fellowship || "—"},
+            ].map(s => (
+              <div key={s.l} className="stat-box">
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,color:"#c9922a",fontWeight:600}}>{s.v}</div>
+                <div className="stat-label">{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="ft-card">
+            <div className="ft-card-title">30-Day Activity</div>
+            <div className="heat-grid">
+              {Array.from({length:30},(_,i) => {
+                const d = new Date(); d.setDate(d.getDate() - (29 - i));
+                const ds = d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+                return <div key={i} className={`heat-cell${entries.some(e=>e.date===ds)?" done":""}`} />;
+              })}
+            </div>
+          </div>
+
+          <div className="ft-verse" style={{padding:"18px 16px"}}>
+            <div style={{fontSize:11,color:"rgba(232,213,176,.4)",letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Encouragement</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontStyle:"italic",color:"#e8d5b0",lineHeight:1.5}}>
+              "He who began a good work in you will carry it on to completion."
+            </div>
+            <div className="ft-verse-ref" style={{marginTop:8}}>— Philippians 1:6</div>
+          </div>
+        </div>
+        <Nav />
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ── SERVICE WORKER ────────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(r  => console.log("[FaithTracker] SW ready:", r.scope))
+      .catch(e => console.warn("[FaithTracker] SW failed:", e));
+  });
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
