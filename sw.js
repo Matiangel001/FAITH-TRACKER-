@@ -1,4 +1,4 @@
-const CACHE = "faith-tracker-v3";
+const CACHE = "faith-tracker-v4";
 // Relative paths: work whether the app lives at the site root or in a folder (e.g. username.github.io/faith-tracker/).
 // A leading "/" always means the domain root, which is the wrong place for a project site.
 const ASSETS = ["./", "./index.html", "./manifest.json"];
