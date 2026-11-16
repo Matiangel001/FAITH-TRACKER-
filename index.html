@@ -565,7 +565,7 @@ import { h, html, render, useState, useEffect, useMemo, useRef } from "https://u
 window.ftUiReady = true; // read by the start-up watchdog at the bottom of the page
 
 // Launch switch. false hides the Fellowship Goal and Mentorship screens' UI; the code behind them is untouched.
-// Set to true once the Firestore rules for those features are ready.
+// Set to true once the Firestore rules for that features are ready.
 const SHOW_BETA_FEATURES = false;
 
 // ── Preact + HTM (replaces React 18 + ReactDOM + Babel) ───────────────────────────────────
@@ -2075,8 +2075,8 @@ function SettingsScreen(p) {
         </div>`
       )}
 
-      ${SHOW_BETA_FEATURES && (
-        html`<div class="figma-card">
+      
+        <div class="figma-card">
         <div class="ft-card-title">Mentorship</div>
 
         ${!user.isMentor ? (
@@ -2120,7 +2120,7 @@ function SettingsScreen(p) {
           </${Fragment}>`
         )}
       </div>`
-      )}
+      
 
       <div class="figma-card">
         <div class="ft-card-title">Your Data</div>
